@@ -2,12 +2,17 @@ package software.ulpgc.imageviewer.swing;
 
 import software.ulpgc.imageviewer.ImageDisplay;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -16,8 +21,10 @@ public class SwingImageDisplay extends JPanel implements ImageDisplay {
     private Released released = Released.Null;
     private int initShift;
     private List<Paint> paints = new ArrayList<>();
+    private final Map<String, BufferedImage> images = new HashMap<>();
 
     public SwingImageDisplay() {
+        loadImages();
         this.addMouseListener(mouseListener());
         this.addMouseMotionListener(mouseMotionListener());
     }
@@ -68,16 +75,13 @@ public class SwingImageDisplay extends JPanel implements ImageDisplay {
         paints.clear();
     }
 
-    private static final Map<String,Color> colors = Map.of(
-            "red", Color.RED,
-            "green", Color.GREEN,
-            "blue", Color.BLUE
-    );
     @Override
     public void paint(Graphics g) {
         for (Paint paint : paints) {
-            g.setColor(colors.get(paint.id));
-            g.fillRect(paint.offset, 0, 800, 600);
+            BufferedImage image = images.get(paint.id);
+            if (image != null) {
+                g.drawImage(image, paint.offset, 0, 800, 600, null);
+            }
         }
     }
 
@@ -92,5 +96,21 @@ public class SwingImageDisplay extends JPanel implements ImageDisplay {
     }
 
     private record Paint(String id, int offset) {
+    }
+
+    private void loadImages() {
+
+        String[] imagePaths = new String[] {"C:\\Users\\sheil\\Desktop\\image-viewer-2\\shiba.jpg",
+                "C:\\Users\\sheil\\Desktop\\image-viewer-2\\shiba2.jpeg",
+                "C:\\Users\\sheil\\Desktop\\image-viewer-2\\shiba3.jpg"};
+
+        for (String path : imagePaths) {
+            try {
+                BufferedImage image = ImageIO.read(new File(path));
+                images.put(path, image);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }
